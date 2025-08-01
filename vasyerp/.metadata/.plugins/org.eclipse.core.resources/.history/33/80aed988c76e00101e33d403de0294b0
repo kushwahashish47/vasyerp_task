@@ -1,0 +1,78 @@
+package com.example.transaction.service;
+
+import com.example.transaction.repository.TransactionRepository;
+import com.vasyerp.transaction.config.FraudRulesConfig;
+import com.vasyerp.transaction.model.Transaction;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.util.*;
+
+@Service
+public class AnomalyDetectionService {
+
+    @Autowired private TransactionRepository txnRepo;
+    @Autowired private FraudRulesConfig config;
+
+    public Map<String, List<Transaction>> detectAnomalies(Long userId) {
+        List<Transaction> txns = txnRepo.findByUserIdOrderByTimestampAsc(userId);
+        Map<String, List<Transaction>> anomalies = new HashMap<>();
+
+        anomalies.put("rapidVelocity", detectRapidVelocity(txns));
+        anomalies.put("highValueNewCity", detectHighValueNewCity(txns));
+        anomalies.put("geoVelocity", detectGeoVelocity(txns));
+
+        return anomalies;
+    }
+
+    private List<Transaction> detectRapidVelocity(List<Transaction> txns) {
+        List<Transaction> flagged = new ArrayList<>();
+        for (int i = 2; i < txns.size(); i++) {
+            long diff1 = Duration.between(txns.get(i-2).getTimestamp(), txns.get(i-1).getTimestamp()).toSeconds();
+            long diff2 = Duration.between(txns.get(i-1).getTimestamp(), txns.get(i).getTimestamp()).toSeconds();
+            if (diff1 < config.getRapidVelocityThreshold() && diff2 < config.getRapidVelocityThreshold()) {
+                flagged.add(txns.get(i));
+            }
+        }
+        return flagged;
+    }
+
+    private List<Transaction> detectHighValueNewCity(List<Transaction> txns) {
+        Set<String> cities = new HashSet<>();
+        if (txns.isEmpty()) return Collections.emptyList();
+
+        BigDecimal avg = txns.stream()
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(txns.size()), RoundingMode.HALF_UP);
+
+        List<Transaction> flagged = new ArrayList<>();
+        for (Transaction t : txns) {
+            if (t.getAmount().compareTo(avg.multiply(BigDecimal.valueOf(config.getHighValueMultiplier()))) > 0
+                    && !cities.contains(t.getCity())) {
+                flagged.add(t);
+            }
+            cities.add(t.getCity());
+        }
+        return flagged;
+    }
+
+    private List<Transaction> detectGeoVelocity(List<Transaction> txns) {
+        List<Transaction> flagged = new ArrayList<>();
+        for (int i = 1; i < txns.size(); i++) {
+            String key = txns.get(i-1).getCity().toLowerCase() + "_" + txns.get(i).getCity().toLowerCase();
+            Double distance = config.getDistanceMap().get(key);
+            if (distance != null) {
+                long hours = Duration.between(txns.get(i-1).getTimestamp(), txns.get(i).getTimestamp()).toHours();
+                if (hours > 0 && (distance / hours) > config.getPlausibleTravelSpeed()) {
+                    flagged.add(txns.get(i));
+                }
+            }
+        }
+        return flagged;
+    }
+}

@@ -1,0 +1,63 @@
+package com.example.transaction.service;
+
+import com.example.transaction.repository.*;
+import com.vasyerp.transaction.dto.TransactionRequest;
+import com.vasyerp.transaction.model.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class TransactionService {
+
+    @Autowired private UserRepository userRepo;
+    @Autowired private TransactionRepository txnRepo;
+    @Autowired private IngestionJobRepository jobRepo;
+
+    @Async
+    @Transactional
+    public void processBatch(UUID jobId, List<TransactionRequest> requests) {
+        try {
+            for (TransactionRequest r : requests) {
+                User user = userRepo.findById(r.getUserId())
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+
+                // Update balance with optimistic locking
+                user.setBalance(user.getBalance().add(r.getAmount()));
+                userRepo.save(user);
+
+                Transaction txn = new Transaction();
+                txn.setId(UUID.randomUUID());
+                txn.setUser(user);
+                txn.setAmount(r.getAmount());
+                txn.setCity(r.getCity());
+                txn.setDescription(r.getDescription());
+                txn.setTimestamp(Instant.now());
+                txnRepo.save(txn);
+            }
+            jobRepo.save(new IngestionJob(jobId, "COMPLETED"));
+        } catch (Exception e) {
+            IngestionJob failedJob = new IngestionJob(jobId, "FAILED");
+            failedJob.setErrorMessage(e.getMessage());
+            jobRepo.save(failedJob);
+        }
+    }
+
+    public UUID startBatch(List<TransactionRequest> requests) {
+        UUID jobId = UUID.randomUUID();
+        jobRepo.save(new IngestionJob(jobId, "PENDING"));
+        processBatch(jobId, requests);
+        return jobId;
+    }
+
+    public IngestionJob getJob(UUID jobId) {
+        return jobRepo.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
+    }
+}

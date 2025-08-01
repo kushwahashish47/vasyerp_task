@@ -1,0 +1,39 @@
+
+# \u2705 Database Configuration
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/transactionsdb
+spring.datasource.username=postgres
+spring.datasource.password=yourpassword
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Hibernate JPA Settings
+spring.jpa.hibernate.ddl-auto=update       
+spring.jpa.show-sql=true                   
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+
+# \u2705 Server Settings
+server.port=8080                           
+
+
+# \u2705 Fraud Detection Rules
+
+fraud.rules.rapid-velocity-threshold=10     
+fraud.rules.high-value-multiplier=5.0      
+fraud.rules.plausible-travel-speed=800     
+
+# Distance Map (City1_City2=distance_km)
+fraud.rules.distance-map.newyork_london=5500
+fraud.rules.distance-map.mumbai_delhi=1400
+fraud.rules.distance-map.mumbai_dubai=1930
+fraud.rules.distance-map.london_paris=350
+
+
+# \u2705 Security Settings
+
+api.key=MY_SECRET_KEY                     
+
+
+logging.level.org.springframework=INFO
+logging.level.com.example.transaction=DEBUG

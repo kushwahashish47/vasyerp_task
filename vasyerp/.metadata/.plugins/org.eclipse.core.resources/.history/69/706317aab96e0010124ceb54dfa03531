@@ -1,0 +1,43 @@
+spring.application.name=TransactionAnalysisSystem
+
+# ================================
+# \u2705 Database Configuration
+# ================================
+spring.datasource.url=jdbc:postgresql://localhost:5432/transactionsdb
+spring.datasource.username=postgres
+spring.datasource.password=yourpassword
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Hibernate JPA Settings
+spring.jpa.hibernate.ddl-auto=update        # Creates/updates tables automatically
+spring.jpa.show-sql=true                    # Logs SQL queries to console
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# ================================
+# \u2705 Server Settings
+# ================================
+server.port=8080                            # Application will run on port 8080
+
+# ================================
+# \u2705 Fraud Detection Rules
+# ================================
+fraud.rules.rapid-velocity-threshold=10     # Max allowed seconds between rapid transactions
+fraud.rules.high-value-multiplier=5.0       # Threshold multiplier for high-value transactions
+fraud.rules.plausible-travel-speed=800      # Max travel speed (km/h) allowed between cities
+
+# Distance Map (City1_City2=distance_km)
+fraud.rules.distance-map.newyork_london=5500
+fraud.rules.distance-map.mumbai_delhi=1400
+fraud.rules.distance-map.mumbai_dubai=1930
+fraud.rules.distance-map.london_paris=350
+
+# ================================
+# \u2705 Security Settings
+# ================================
+api.key=MY_SECRET_KEY                      # API key for securing endpoints
+
+# ================================
+# \u2705 Logging (Optional)
+# ================================
+log

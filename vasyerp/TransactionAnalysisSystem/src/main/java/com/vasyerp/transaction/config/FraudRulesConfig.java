@@ -1,0 +1,42 @@
+package com.vasyerp.transaction.config;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import java.util.Map;
+
+@Configuration
+@ConfigurationProperties(prefix = "fraud.rules")
+@Data
+public class FraudRulesConfig {
+    private int rapidVelocityThreshold;
+    private double highValueMultiplier;
+    private double plausibleTravelSpeed;
+    private Map<String, Double> distanceMap;
+	public int getRapidVelocityThreshold() {
+		return rapidVelocityThreshold;
+	}
+	public void setRapidVelocityThreshold(int rapidVelocityThreshold) {
+		this.rapidVelocityThreshold = rapidVelocityThreshold;
+	}
+	public double getHighValueMultiplier() {
+		return highValueMultiplier;
+	}
+	public void setHighValueMultiplier(double highValueMultiplier) {
+		this.highValueMultiplier = highValueMultiplier;
+	}
+	public double getPlausibleTravelSpeed() {
+		return plausibleTravelSpeed;
+	}
+	public void setPlausibleTravelSpeed(double plausibleTravelSpeed) {
+		this.plausibleTravelSpeed = plausibleTravelSpeed;
+	}
+	public Map<String, Double> getDistanceMap() {
+		return distanceMap;
+	}
+	public void setDistanceMap(Map<String, Double> distanceMap) {
+		this.distanceMap = distanceMap;
+	}
+    
+    
+}

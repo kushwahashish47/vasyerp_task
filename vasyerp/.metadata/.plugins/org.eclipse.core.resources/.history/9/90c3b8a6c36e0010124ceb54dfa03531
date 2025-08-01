@@ -1,0 +1,24 @@
+package com.example.transaction.model;
+
+import lombok.Data;
+import javax.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "ingestion_jobs")
+@Data
+public class IngestionJob {
+    @Id
+    private UUID jobId;
+
+    private String status;
+    private String errorMessage;
+    private Instant createdAt = Instant.now();
+
+    public IngestionJob() {}
+    public IngestionJob(UUID jobId, String status) {
+        this.jobId = jobId;
+        this.status = status;
+    }
+}

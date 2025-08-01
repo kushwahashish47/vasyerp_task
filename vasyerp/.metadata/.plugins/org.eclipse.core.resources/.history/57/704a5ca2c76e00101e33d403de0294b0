@@ -1,0 +1,29 @@
+package com.vasyerp.transaction.controller;
+
+import com.example.transaction.service.TransactionService;
+import com.vasyerp.transaction.dto.TransactionRequest;
+import com.vasyerp.transaction.model.IngestionJob;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/transactions")
+public class TransactionController {
+
+    @Autowired private TransactionService service;
+
+    @PostMapping("/batch")
+    public ResponseEntity<Map<String, Object>> ingest(@RequestBody List<TransactionRequest> req) {
+        UUID jobId = service.startBatch(req);
+        return ResponseEntity.accepted().body(Map.of("jobId", jobId, "status", "PENDING"));
+    }
+
+    @GetMapping("/batch/{jobId}")
+    public ResponseEntity<IngestionJob> status(@PathVariable UUID jobId) {
+        return ResponseEntity.ok(service.getJob(jobId));
+    }
+}

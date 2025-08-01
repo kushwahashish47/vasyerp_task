@@ -1,0 +1,22 @@
+package com.vasyerp.transaction.controller;
+
+import com.vasyerp.transaction.model.Transaction;
+import com.vasyerp.transaction.service.AnomalyDetectionService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/users")
+public class AnomalyController {
+
+    @Autowired private AnomalyDetectionService service;
+
+    @GetMapping("/{userId}/anomalies")
+    public ResponseEntity<Map<String, List<Transaction>>> getAnomalies(@PathVariable Long userId) {
+        return ResponseEntity.ok(service.detectAnomalies(userId));
+    }
+}
